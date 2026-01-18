@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.1</version>
+        <version>3.4.1</version>
         <relativePath/>
     </parent>
     <groupId>com.usermanagement</groupId>
@@ -15,7 +15,7 @@
     <name>user-management-be</name>
     <description>User Management System with Spring Boot 3</description>
     <properties>
-        <java.version>17</java.version>
+        <java.version>21</java.version>
     </properties>
     <dependencies>
         <dependency>
