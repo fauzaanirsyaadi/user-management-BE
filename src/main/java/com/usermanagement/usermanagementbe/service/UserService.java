@@ -72,7 +72,8 @@ public class UserService {
 
         user.setUsername(userRequest.getUsername());
         user.setEmail(userRequest.getEmail());
-        if (userRequest.getPassword() != null && !userRequest.getPassword().isEmpty()) {
+        // Only update password if a new one is provided and not blank
+        if (userRequest.getPassword() != null && !userRequest.getPassword().trim().isEmpty()) {
             user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         }
         user.setRole(userRequest.getRole());
