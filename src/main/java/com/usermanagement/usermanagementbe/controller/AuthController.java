@@ -42,9 +42,7 @@ public class AuthController {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getUsername(),
-                        loginRequest.getPassword()
-                )
-        );
+                        loginRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = tokenProvider.generateToken(authentication);
@@ -60,6 +58,9 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> registerUser(@Valid @RequestBody UserRequest signUpRequest) {
+        if (signUpRequest.getPassword() == null || signUpRequest.getPassword().trim().isEmpty()) {
+            throw new BadRequestException("Password is required");
+        }
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             throw new BadRequestException("Username is already taken");
         }
@@ -89,8 +90,7 @@ public class AuthController {
                 userDetails.getId(),
                 userDetails.getUsername(),
                 userDetails.getEmail(),
-                userDetails.getAuthorities().iterator().next().getAuthority()
-        );
+                userDetails.getAuthorities().iterator().next().getAuthority());
         return ResponseEntity.ok(userResponse);
     }
 }
