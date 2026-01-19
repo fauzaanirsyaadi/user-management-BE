@@ -41,6 +41,7 @@ public class SecurityConfig {
     public LoginRateLimitFilter loginRateLimitFilter() {
         return new LoginRateLimitFilter();
     }
+
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -62,12 +63,15 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:3000", "http://127.0.0.1:3000"));
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+                "http://localhost:3000",
+                "http://127.0.0.1:3000",
+                "https://usermanagement.zanitaproject.site"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -84,16 +88,14 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
-                                .requestMatchers(HttpMethod.POST, "/api/users").hasAuthority("ADMIN")
-                                .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAuthority("ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAuthority("ADMIN")
-                                .requestMatchers(HttpMethod.GET, "/api/users").hasAuthority("ADMIN")
-                                .requestMatchers(HttpMethod.GET, "/api/users/*").hasAnyAuthority("USER", "ADMIN")
-                                .anyRequest().authenticated()
-                );
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/users").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/users").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/users/*").hasAnyAuthority("USER", "ADMIN")
+                        .anyRequest().authenticated());
 
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(loginRateLimitFilter(), UsernamePasswordAuthenticationFilter.class);
