@@ -41,7 +41,7 @@ public class UserControllerIntegrationTest {
 
     @Test
     public void testRegisterAndLogin() throws Exception {
-        UserRequest userRequest = new UserRequest("testuser", "test@example.com", "password123", "USER");
+        UserRequest userRequest = new UserRequest("testuser", "test@example.com", "StrongPass1!", "USER");
 
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -51,7 +51,7 @@ public class UserControllerIntegrationTest {
                 .andExpect(jsonPath("$.email").value("test@example.com"))
                 .andExpect(jsonPath("$.role").value("USER"));
 
-        LoginRequest loginRequest = new LoginRequest("testuser", "password123");
+        LoginRequest loginRequest = new LoginRequest("testuser", "StrongPass1!");
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -59,6 +59,20 @@ public class UserControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").exists())
                 .andExpect(jsonPath("$.username").value("testuser"));
+
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String token = objectMapper.readTree(loginResult.getResponse().getContentAsString()).get("token").asText();
+
+        mockMvc.perform(get("/api/auth/me")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("testuser"))
+                .andExpect(jsonPath("$.email").value("test@example.com"));
     }
 
     @Test
@@ -75,7 +89,7 @@ public class UserControllerIntegrationTest {
 
         String token = objectMapper.readTree(loginResult.getResponse().getContentAsString()).get("token").asText();
 
-        UserRequest userRequest = new UserRequest("newuser", "newuser@example.com", "password123", "USER");
+        UserRequest userRequest = new UserRequest("newuser", "newuser@example.com", "StrongPass1!", "USER");
 
         mockMvc.perform(post("/api/users")
                         .header("Authorization", "Bearer " + token)
@@ -99,7 +113,7 @@ public class UserControllerIntegrationTest {
 
         String token = objectMapper.readTree(loginResult.getResponse().getContentAsString()).get("token").asText();
 
-        UserRequest userRequest = new UserRequest("newuser", "newuser@example.com", "password123", "USER");
+        UserRequest userRequest = new UserRequest("newuser", "newuser@example.com", "StrongPass1!", "USER");
 
         mockMvc.perform(post("/api/users")
                         .header("Authorization", "Bearer " + token)
@@ -145,7 +159,7 @@ public class UserControllerIntegrationTest {
 
         String token = objectMapper.readTree(loginResult.getResponse().getContentAsString()).get("token").asText();
 
-        UserRequest updateRequest = new UserRequest("updateduser", "updated@example.com", "newpassword", "USER");
+        UserRequest updateRequest = new UserRequest("updateduser", "updated@example.com", "Newpass1!", "USER");
 
         mockMvc.perform(put("/api/users/" + savedUser.getId())
                         .header("Authorization", "Bearer " + token)

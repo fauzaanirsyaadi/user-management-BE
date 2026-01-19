@@ -10,6 +10,7 @@ import com.usermanagement.usermanagementbe.repository.UserRepository;
 import com.usermanagement.usermanagementbe.security.JwtTokenProvider;
 import com.usermanagement.usermanagementbe.security.UserDetailsImpl;
 import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -80,5 +81,16 @@ public class AuthController {
                 result.getRole());
 
         return new ResponseEntity<>(userResponse, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getCurrentUser(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        UserResponse userResponse = new UserResponse(
+                userDetails.getId(),
+                userDetails.getUsername(),
+                userDetails.getEmail(),
+                userDetails.getAuthorities().iterator().next().getAuthority()
+        );
+        return ResponseEntity.ok(userResponse);
     }
 }
