@@ -10,6 +10,7 @@ import com.usermanagement.usermanagementbe.repository.UserRepository;
 import com.usermanagement.usermanagementbe.security.JwtTokenProvider;
 import com.usermanagement.usermanagementbe.security.UserDetailsImpl;
 import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,9 +42,7 @@ public class AuthController {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getUsername(),
-                        loginRequest.getPassword()
-                )
-        );
+                        loginRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = tokenProvider.generateToken(authentication);
@@ -59,6 +58,9 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> registerUser(@Valid @RequestBody UserRequest signUpRequest) {
+        if (signUpRequest.getPassword() == null || signUpRequest.getPassword().trim().isEmpty()) {
+            throw new BadRequestException("Password is required");
+        }
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             throw new BadRequestException("Username is already taken");
         }
@@ -80,5 +82,15 @@ public class AuthController {
                 result.getRole());
 
         return new ResponseEntity<>(userResponse, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getCurrentUser(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        UserResponse userResponse = new UserResponse(
+                userDetails.getId(),
+                userDetails.getUsername(),
+                userDetails.getEmail(),
+                userDetails.getAuthorities().iterator().next().getAuthority());
+        return ResponseEntity.ok(userResponse);
     }
 }
